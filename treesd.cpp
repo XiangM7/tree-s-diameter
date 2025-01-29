@@ -5,25 +5,30 @@ using namespace std;
 
 struct Edge {
     int u, v;
-    Edge(){}
-    Edge(int a, int b) { u = a; v = b; }
+    Edge(int a, int b) : u(a), v(b) {}
 };
 
-// Helper function to perform BFS and find the farthest node and its distance
-pair<int, int> bfs(int start, const vector<vector<int>>& adj, int n) {
-    vector<int> dist(n + 1, -1); // Distance array
+// BFS function to find the farthest node and its distance from the start node
+int bfs(int start, const vector<vector<int>>& adj, int n) {
+    vector<int> dist(n + 1, -1); // Initialize all distances to -1 (unvisited)
     queue<int> q;
     q.push(start);
     dist[start] = 0;
+
     int farthest_node = start;
     int max_dist = 0;
 
     while (!q.empty()) {
-        int current = q.front(); q.pop();
-        for (const auto &neighbor : adj[current]) {
-            if (dist[neighbor] == -1) { // If not visited
-                dist[neighbor] = dist[current] + 1;
+        int node = q.front();
+        q.pop();
+
+        // Go through all the neighbors
+        for (int neighbor : adj[node]) {
+            if (dist[neighbor] == -1) {  // If the neighbor has not been visited
+                dist[neighbor] = dist[node] + 1;
                 q.push(neighbor);
+
+                // Track the farthest node and the maximum distance
                 if (dist[neighbor] > max_dist) {
                     max_dist = dist[neighbor];
                     farthest_node = neighbor;
@@ -32,41 +37,45 @@ pair<int, int> bfs(int start, const vector<vector<int>>& adj, int n) {
         }
     }
 
-    return {farthest_node, max_dist};
+    return max_dist; // Return the longest distance found
 }
 
-int compute_diameter(int n, vector<Edge> T) {
-    // Step 1: Build the adjacency list
-    vector<vector<int>> adj(n + 1, vector<int>());
-    for (const auto &edge : T) {
+int compute_diameter(int n, const vector<Edge>& edges) {
+    vector<vector<int>> adj(n + 1);  // Create adjacency list for the tree
+
+    // Fill the adjacency list
+    for (const auto& edge : edges) {
         adj[edge.u].push_back(edge.v);
         adj[edge.v].push_back(edge.u);
     }
 
-    // Step 2: First BFS to find one end of the diameter
-    pair<int, int> first_bfs = bfs(1, adj, n);
-    int farthest_node = first_bfs.first;
+    // First BFS to find the farthest node from an arbitrary node (1 in this case)
+    int farthest = bfs(1, adj, n);
 
-    // Step 3: Second BFS from the farthest node found in first BFS
-    pair<int, int> second_bfs = bfs(farthest_node, adj, n);
-    int diameter = second_bfs.second;
-
-    return diameter;
+    // Second BFS from the farthest node found to calculate the tree's diameter
+    return bfs(farthest, adj, n);
 }
 
 int main() {
     ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+    cin.tie(nullptr);
+
     int tc;
     cin >> tc;
-    while(tc--){
+
+    while (tc--) {
         int n;
         cin >> n;
-        vector<Edge> T(n - 1);
-        for(int i = 0; i < n - 1; ++i){
-            cin >> T[i].u >> T[i].v;
+
+        vector<Edge> edges(n - 1);
+        for (int i = 0; i < n - 1; ++i) {
+            cin >> edges[i].u >> edges[i].v;
         }
-        int answer = compute_diameter(n, T);
-        cout << answer << '\n';
+
+        // Compute the diameter of the tree and print it
+        cout << compute_diameter(n, edges) << '\n';
     }
+
+    return 0;
 }
+
