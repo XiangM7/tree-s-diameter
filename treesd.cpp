@@ -3,19 +3,9 @@
 #include <queue>
 using namespace std;
 
-struct Edge {
-    int u, v;
-
-    // Default constructor
-    Edge() : u(0), v(0) {}
-
-    // Parameterized constructor
-    Edge(int a, int b) : u(a), v(b) {}
-};
-
 // BFS function to find the farthest node and its distance from the start node
 int bfs(int start, const vector<vector<int>>& adj, int n) {
-    vector<int> dist(n + 1, -1); // Initialize all distances to -1 (unvisited)
+    vector<int> dist(n + 1, -1);  // Initialize all distances to -1 (unvisited)
     queue<int> q;
     q.push(start);
     dist[start] = 0;
@@ -45,13 +35,13 @@ int bfs(int start, const vector<vector<int>>& adj, int n) {
     return max_dist; // Return the longest distance found
 }
 
-int compute_diameter(int n, const vector<Edge>& edges) {
+int compute_diameter(int n, const vector<pair<int, int>>& edges) {
     vector<vector<int>> adj(n + 1);  // Create adjacency list for the tree
 
     // Fill the adjacency list
     for (const auto& edge : edges) {
-        adj[edge.u].push_back(edge.v);
-        adj[edge.v].push_back(edge.u);
+        adj[edge.first].push_back(edge.second);
+        adj[edge.second].push_back(edge.first);
     }
 
     // First BFS to find the farthest node from an arbitrary node (1 in this case)
@@ -66,21 +56,20 @@ int main() {
     cin.tie(nullptr);
 
     int tc;
-    cin >> tc;
+    cin >> tc;  // Read the number of test cases
 
     while (tc--) {
         int n;
-        cin >> n;
+        cin >> n;  // Read the number of vertices
 
-        vector<Edge> edges(n - 1);
+        vector<pair<int, int>> edges(n - 1);  // Vector to store edges
         for (int i = 0; i < n - 1; ++i) {
-            cin >> edges[i].u >> edges[i].v;
+            cin >> edges[i].first >> edges[i].second;  // Read edges
         }
 
-        // Compute the diameter of the tree and print it
+        // Compute and print the diameter of the tree
         cout << compute_diameter(n, edges) << '\n';
     }
 
     return 0;
 }
-
