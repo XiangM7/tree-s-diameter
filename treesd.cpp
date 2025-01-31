@@ -3,73 +3,94 @@
 #include <queue>
 using namespace std;
 
-// BFS function to find the farthest node and its distance from the start node
-int bfs(int start, const vector<vector<int>>& adj, int n) {
-    vector<int> dist(n + 1, -1);  // Initialize all distances to -1 (unvisited)
-    queue<int> q;
-    q.push(start);
-    dist[start] = 0;
+struct Edge {
+    int u, v;
+    Edge(){}
+    Edge(int a, int b) { u = a; v = b; }
+};
 
-    int farthest_node = start;
-    int max_dist = 0;
+// https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/
 
-    while (!q.empty()) {
-        int node = q.front();
-        q.pop();
+// Helper function to perform BFS and find the farthest node and its distance
+pair<int, int> bfs(int start, const vector<vector<int>>& adj, int n) {
+    
+    vector<bool> visited(n+1, false); 
+    queue<pair<int,int>> tree;
+    //reset everthing
+    
+    tree.push({start, 0});
+    // Mark the source node as visited and enqueue it
+    visited[start] = true;
+    
+    //by hint, i need farest node and diameter between u and v, and do anohter bfs for v and w to find diameter, for make--
+    //code effeicency, i wanna my bfs could collect these 2 data 
+    int farest = start;
+    int dis = 0;
 
-        // Go through all the neighbors
-        for (int neighbor : adj[node]) {
-            if (dist[neighbor] == -1) {  // If the neighbor has not been visited
-                dist[neighbor] = dist[node] + 1;
-                q.push(neighbor);
+    while (!tree.empty()) {
+        
+        pair<int, int> front = tree.front();
+        int curr = front.first;
+        int curr_dist = front.second;
+        
+        tree.pop();
+        
+        // If the newly discovered distance is greater than our current max.
+        if (curr_dist > dis) {
+            dis = curr_dist;
+            farest = curr;
+        }
 
-                // Track the farthest node and the maximum distance
-                if (dist[neighbor] > max_dist) {
-                    max_dist = dist[neighbor];
-                    farthest_node = neighbor;
-                }
+        for (const auto &x : adj[curr]) {
+            // If not visited, add it in
+            if (!visited[x]) { 
+                visited[x] = true;
+                tree.push({x, curr_dist + 1});
             }
         }
     }
 
-    return max_dist; // Return the longest distance found
+    return {farest, dis};
 }
 
-int compute_diameter(int n, const vector<pair<int, int>>& edges) {
-    vector<vector<int>> adj(n + 1);  // Create adjacency list for the tree
-
-    // Fill the adjacency list
-    for (const auto& edge : edges) {
-        adj[edge.first].push_back(edge.second);
-        adj[edge.second].push_back(edge.first);
+int compute_diameter(int n, vector<Edge> T)
+{
+    //Build the adjacency list
+    vector<vector<int>> adj(n+1, vector<int>());
+    
+    for (const auto &edge : T) {
+        adj[edge.u].push_back(edge.v);
+        adj[edge.v].push_back(edge.u);
     }
 
-    // First BFS to find the farthest node from an arbitrary node (1 in this case)
-    int farthest = bfs(1, adj, n);
+    // First, use BFS to find  v
+    pair<int, int> firsttime = bfs(1, adj, n);
+    
+    int farest = firsttime.first;
 
-    // Second BFS from the farthest node found to calculate the tree's diameter
-    return bfs(farthest, adj, n);
+    //Use BFS again, to find distance from v and w
+    pair<int, int> secondtime = bfs(farest, adj, n);
+    
+    int diameter = secondtime.second;
+
+    return diameter;
 }
 
 int main() {
     ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
-
+    cin.tie(NULL);
     int tc;
-    cin >> tc;  // Read the number of test cases
-
-    while (tc--) {
+    cin >> tc;
+   for (int t = 0; t < tc; t++) {
         int n;
-        cin >> n;  // Read the number of vertices
-
-        vector<pair<int, int>> edges(n - 1);  // Vector to store edges
-        for (int i = 0; i < n - 1; ++i) {
-            cin >> edges[i].first >> edges[i].second;  // Read edges
+        cin >> n;
+        vector<Edge> T(n - 1);
+        for (int i = 0; i < n - 1; i++) {
+            cin >> T[i].u >> T[i].v;
         }
-
-        // Compute and print the diameter of the tree
-        cout << compute_diameter(n, edges) << '\n';
+        int answer = compute_diameter(n, T);
+        cout << answer << '\n';
     }
-
-    return 0;
 }
+
+
